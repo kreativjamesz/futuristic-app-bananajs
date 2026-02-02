@@ -4,6 +4,7 @@
  */
 
 import { createButton, createBadge } from './ui';
+import { getRouter } from '../utils/router';
 
 export function createHero(): HTMLElement {
   const hero = document.createElement('section');
@@ -66,7 +67,13 @@ export function createHero(): HTMLElement {
     label: 'Get Started Free',
     variant: 'primary',
     size: 'lg',
-    onClick: () => console.log('Get Started clicked'),
+    onClick: () => {
+      try {
+        getRouter().navigate('/editor');
+      } catch {
+        window.location.href = '/editor';
+      }
+    },
   });
   const secondaryButton = createButton({
     label: 'View Documentation',

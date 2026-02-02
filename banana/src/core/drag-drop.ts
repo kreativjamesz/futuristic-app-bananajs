@@ -46,19 +46,28 @@ export class DragDropEngine {
 
   private handlePointerDown(e: PointerEvent): void {
     const target = e.target as HTMLElement;
-    if (!target.hasAttribute('data-draggable')) return;
+    const draggable = target.closest('[data-draggable]') as HTMLElement;
+    
+    if (!draggable) return;
+
+    // Prevent default text selection
+    e.preventDefault();
+    e.stopPropagation();
 
     this.dragState.isDragging = true;
     this.dragState.startPosition = { x: e.clientX, y: e.clientY };
     this.dragState.currentPosition = { x: e.clientX, y: e.clientY };
-    this.dragElement = target;
+    this.dragElement = draggable;
 
     // Create ghost element
-    this.createGhostElement(target, e.clientX, e.clientY);
+    this.createGhostElement(draggable, e.clientX, e.clientY);
     
     // Set pointer capture
-    target.setPointerCapture(e.pointerId);
-    e.preventDefault();
+    draggable.setPointerCapture(e.pointerId);
+    
+    // Prevent text selection during drag
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'grabbing';
   }
 
   private handlePointerMove(e: PointerEvent): void {

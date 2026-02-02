@@ -1,6 +1,7 @@
 import './style.css';
 import { createRouter, type Route } from './utils/router';
 import { createHomePage, createDocsPage } from './pages';
+import { createEditorPage } from './pages/Editor';
 
 // Add smooth scrolling
 document.documentElement.style.scrollBehavior = 'smooth';
@@ -40,6 +41,11 @@ const routes: Route[] = [
     path: '/docs',
     component: createDocsPage,
     title: 'Documentation - BananaJS',
+  },
+  {
+    path: '/editor',
+    component: createEditorPage,
+    title: 'Editor - BananaJS',
   },
 ];
 
