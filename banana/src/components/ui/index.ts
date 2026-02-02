@@ -5,6 +5,7 @@
 
 export { createButton, type ButtonProps } from './Button';
 export { createInput, type InputProps } from './Input';
+export { createTextarea, type TextareaProps } from './Textarea';
 export { createCheckbox, type CheckboxProps } from './Checkbox';
 export { createCard, type CardProps } from './Card';
 export { createBadge, type BadgeProps } from './Badge';

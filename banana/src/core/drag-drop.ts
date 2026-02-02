@@ -38,6 +38,11 @@ export class DragDropEngine {
       accepts,
       bounds,
     });
+    
+    // Add visual indicator for drop zones
+    if (element.hasAttribute('data-banana-container')) {
+      element.classList.add('banana-drop-zone');
+    }
   }
 
   unregisterDropZone(id: string): void {
@@ -75,9 +80,10 @@ export class DragDropEngine {
 
     this.dragState.currentPosition = { x: e.clientX, y: e.clientY };
 
-    // Update ghost position
+    // Update ghost position (centered on cursor)
     if (this.ghostElement) {
-      this.ghostElement.style.transform = `translate(${e.clientX - this.dragState.startPosition.x}px, ${e.clientY - this.dragState.startPosition.y}px)`;
+      this.ghostElement.style.top = `${e.clientY}px`;
+      this.ghostElement.style.left = `${e.clientX}px`;
     }
 
     // Find drop zone
@@ -99,13 +105,32 @@ export class DragDropEngine {
   }
 
   private findDropZone(x: number, y: number): DropZone | null {
+    // Update bounds for all drop zones (in case of scrolling/resizing)
+    this.dropZones.forEach((zone) => {
+      zone.bounds = zone.element.getBoundingClientRect();
+    });
+
+    // Find all matching drop zones (nested containers)
+    const matchingZones: DropZone[] = [];
+    
     for (const zone of this.dropZones.values()) {
-      const rect = zone.element.getBoundingClientRect();
+      const rect = zone.bounds;
       if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-        return zone;
+        matchingZones.push(zone);
       }
     }
-    return null;
+
+    if (matchingZones.length === 0) return null;
+
+    // Return the smallest (most nested) drop zone
+    // This ensures we drop into the innermost container
+    matchingZones.sort((a, b) => {
+      const areaA = a.bounds.width * a.bounds.height;
+      const areaB = b.bounds.width * b.bounds.height;
+      return areaA - areaB; // Smallest first
+    });
+
+    return matchingZones[0];
   }
 
   private createGhostElement(element: HTMLElement, x: number, y: number): void {
@@ -113,21 +138,36 @@ export class DragDropEngine {
     this.ghostElement.style.position = 'fixed';
     this.ghostElement.style.top = `${y}px`;
     this.ghostElement.style.left = `${x}px`;
-    this.ghostElement.style.opacity = '0.5';
+    this.ghostElement.style.opacity = '0.6';
     this.ghostElement.style.pointerEvents = 'none';
     this.ghostElement.style.zIndex = '10000';
+    this.ghostElement.style.transform = 'translate(-50%, -50%)';
+    this.ghostElement.style.width = `${element.offsetWidth}px`;
+    this.ghostElement.style.backgroundColor = 'white';
+    this.ghostElement.style.border = '2px dashed #3b82f6';
+    this.ghostElement.style.borderRadius = '0.375rem';
+    this.ghostElement.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
     document.body.appendChild(this.ghostElement);
   }
 
   private updateDropZoneFeedback(zone: DropZone | null): void {
-    // Remove previous feedback
+    // Remove previous feedback from ALL zones
     this.dropZones.forEach((z) => {
-      z.element.classList.remove('banana-drop-zone-active');
+      z.element.classList.remove('banana-drop-zone-active', 'banana-drop-zone-hover');
     });
 
-    // Add feedback to current zone
+    // Add feedback ONLY to the current (innermost) zone
     if (zone) {
-      zone.element.classList.add('banana-drop-zone-active');
+      zone.element.classList.add('banana-drop-zone-active', 'banana-drop-zone-hover');
+      
+      // Remove feedback from parent containers
+      let parent = zone.element.parentElement;
+      while (parent) {
+        if (parent.hasAttribute('data-banana-container') || parent.hasAttribute('data-banana-canvas')) {
+          parent.classList.remove('banana-drop-zone-active', 'banana-drop-zone-hover');
+        }
+        parent = parent.parentElement;
+      }
     }
   }
 

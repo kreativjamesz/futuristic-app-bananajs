@@ -4,8 +4,10 @@
  */
 
 import { createNavbar } from '../components';
+import { createPropertiesPanel, updatePropertiesPanel } from '../components/PropertiesPanel';
 import { DragDropEngine } from '../core/drag-drop';
 import { ElementTree } from '../core/tree';
+import type { ElementNode } from '../core/types';
 
 export function createEditorPage(): HTMLElement {
   const container = document.createElement('div');
@@ -28,13 +30,24 @@ export function createEditorPage(): HTMLElement {
   editorLayout.appendChild(canvas);
 
   // Right Panel - Properties
-  const properties = createPropertiesPanel();
+  const canvasInner = canvas.querySelector('#banana-canvas-inner') as HTMLElement;
+  const properties = createPropertiesPanel((elementId: string, updates: Record<string, any>) => {
+    // Handle property updates
+    console.log('Property updated:', elementId, updates);
+    const editor = (canvasInner as any)?.__bananaEditor;
+    if (editor?.tree) {
+      const node = editor.tree.getNode(elementId);
+      if (node) {
+        Object.assign(node.props, updates);
+      }
+    }
+  });
   editorLayout.appendChild(properties);
 
   container.appendChild(editorLayout);
 
   // Initialize editor
-  initializeEditor(canvas);
+  initializeEditor(canvas, properties);
 
   return container;
 }
@@ -135,8 +148,9 @@ function createCanvas(): HTMLElement {
   const canvasInner = document.createElement('div');
   canvasInner.id = 'banana-canvas-inner';
   canvasInner.className = 'bg-white rounded-md border-2 border-dashed border-gray-300 min-h-[600px] w-full max-w-6xl p-8';
+  canvasInner.setAttribute('data-banana-canvas', 'true');
   canvasInner.innerHTML = `
-    <div class="text-center text-gray-400 py-20">
+    <div class="text-center text-gray-400 py-20" data-placeholder="true">
       <p class="text-sm">Drop components here to start building</p>
     </div>
   `;
@@ -147,53 +161,48 @@ function createCanvas(): HTMLElement {
   return canvasWrapper;
 }
 
-/**
- * Properties Panel - Right Sidebar
- */
-function createPropertiesPanel(): HTMLElement {
-  const panel = document.createElement('div');
-  panel.className = 'w-80 bg-white border-l border-gray-200 overflow-y-auto';
-
-  const header = document.createElement('div');
-  header.className = 'p-4 border-b border-gray-200';
-  header.innerHTML = `
-    <h2 class="text-sm font-semibold text-gray-900 mb-1">Properties</h2>
-    <p class="text-xs text-gray-500">Edit selected element</p>
-  `;
-  panel.appendChild(header);
-
-  const content = document.createElement('div');
-  content.className = 'p-4';
-  content.innerHTML = `
-    <div class="text-center py-12 text-gray-400">
-      <p class="text-sm">Select an element to edit</p>
-    </div>
-  `;
-  panel.appendChild(content);
-
-  return panel;
-}
 
 /**
  * Initialize Editor
  */
-function initializeEditor(canvas: HTMLElement): void {
+function initializeEditor(canvas: HTMLElement, propertiesPanel: HTMLElement): void {
   const canvasInner = canvas.querySelector('#banana-canvas-inner') as HTMLElement;
   if (!canvasInner) return;
 
   // Initialize drag-drop engine on the entire document to catch palette drags
   const dragDrop = new DragDropEngine(document.body);
 
-  // Register canvas as drop zone
+  // Register canvas as drop zone (root container)
+  canvasInner.setAttribute('data-banana-id', 'canvas');
   dragDrop.registerDropZone('canvas', canvasInner, []);
 
   // Handle drops
-  canvasInner.addEventListener('banana:drop', ((e: CustomEvent) => {
-    const { element } = e.detail;
+  document.body.addEventListener('banana:drop', ((e: CustomEvent) => {
+    const { element, dropZone } = e.detail;
     const componentType = element.getAttribute('data-component-type');
     
-    if (componentType) {
-      createElementOnCanvas(canvasInner, componentType);
+    console.log('Drop detected:', { componentType, dropZone: dropZone?.id });
+    
+    if (componentType && dropZone) {
+      // Determine drop target
+      let dropTarget: HTMLElement;
+      
+      if (dropZone.id === 'canvas') {
+        // Dropping on canvas
+        dropTarget = canvasInner;
+        canvasInner.setAttribute('data-banana-canvas', 'true');
+      } else {
+        // Dropping on an element (nested)
+        dropTarget = dropZone.element;
+      }
+      
+      // Get editor instance
+      const editor = (canvasInner as any).__bananaEditor;
+      if (editor) {
+        createElementOnCanvas(dropTarget, componentType, editor.dragDrop, editor.tree);
+      } else {
+        createElementOnCanvas(dropTarget, componentType, dragDrop, tree);
+      }
     }
   }) as EventListener);
 
@@ -204,57 +213,223 @@ function initializeEditor(canvas: HTMLElement): void {
   (canvasInner as any).__bananaEditor = {
     dragDrop,
     tree,
+    propertiesPanel,
   };
+
+  // Setup element selection
+  setupElementSelection(canvasInner, tree, propertiesPanel);
+}
+
+/**
+ * Setup element selection on canvas
+ */
+function setupElementSelection(
+  canvas: HTMLElement,
+  tree: ElementTree,
+  propertiesPanel: HTMLElement | null
+): void {
+  canvas.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    
+    // Find the banana element (might be clicking on child)
+    const element = target.closest('.banana-element') as HTMLElement;
+    if (!element) {
+      // Deselect
+      if (propertiesPanel) {
+        updatePropertiesPanel(null, null);
+      }
+      return;
+    }
+
+    const elementId = element.getAttribute('data-banana-id');
+    if (!elementId) return;
+
+    // Get node from tree
+    const node = tree.getNode(elementId);
+    if (!node) return;
+
+    // Update properties panel
+    if (propertiesPanel) {
+      updatePropertiesPanel(element, node);
+    }
+
+    // Visual selection feedback
+    document.querySelectorAll('.banana-element-selected').forEach((el) => {
+      el.classList.remove('banana-element-selected');
+    });
+    element.classList.add('banana-element-selected');
+  });
+
+  // Keyboard shortcuts for deletion
+  document.addEventListener('keydown', (e) => {
+    // Only delete if an element is selected and not typing in an input/textarea
+    const activeElement = document.activeElement;
+    if (
+      activeElement &&
+      (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')
+    ) {
+      return; // Don't delete while typing
+    }
+
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      const selectedElement = document.querySelector('.banana-element-selected') as HTMLElement;
+      if (!selectedElement) return;
+
+      const elementId = selectedElement.getAttribute('data-banana-id');
+      if (!elementId) return;
+
+      const node = tree.getNode(elementId);
+      if (!node) return;
+
+      e.preventDefault();
+
+      if (confirm('Are you sure you want to delete this element?')) {
+        deleteSelectedElement(selectedElement, node, tree);
+      }
+    }
+  });
+}
+
+/**
+ * Delete selected element
+ */
+function deleteSelectedElement(
+  element: HTMLElement,
+  node: ElementNode,
+  tree: ElementTree
+): void {
+  const canvas = document.querySelector('#banana-canvas-inner') as HTMLElement;
+  if (!canvas) return;
+
+  const editor = (canvas as any)?.__bananaEditor;
+  if (!editor) return;
+
+  // Remove from element tree
+  tree.removeNode(node.id);
+
+  // Unregister as drop zone if it's a container
+  if (element.hasAttribute('data-banana-container') && editor.dragDrop) {
+    editor.dragDrop.unregisterDropZone(node.id);
+  }
+
+  // Remove from DOM
+  element.remove();
+
+  // Clear selection
+  const propertiesPanel = document.querySelector('#banana-properties-panel');
+  if (propertiesPanel) {
+    updatePropertiesPanel(null, null);
+  }
+
+  // Show placeholder if canvas is empty
+  const remainingElements = canvas.querySelectorAll('.banana-element');
+  if (remainingElements.length === 0) {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'text-center text-gray-400 py-20';
+    placeholder.setAttribute('data-placeholder', 'true');
+    placeholder.innerHTML = '<p class="text-sm">Drop components here to start building</p>';
+    canvas.appendChild(placeholder);
+  }
 }
 
 /**
  * Create element on canvas
  */
-function createElementOnCanvas(canvas: HTMLElement, type: string): void {
+function createElementOnCanvas(
+  parent: HTMLElement, 
+  type: string, 
+  dragDrop?: DragDropEngine,
+  tree?: ElementTree
+): HTMLElement {
+  const elementId = `element-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const element = document.createElement(type);
-  element.className = 'banana-element p-4 border border-gray-200 rounded-md mb-2 cursor-pointer hover:border-gray-400 transition-colors';
-  element.setAttribute('data-banana-id', `element-${Date.now()}`);
+  element.setAttribute('data-banana-id', elementId);
+  element.setAttribute('data-banana-type', type);
 
-  // Set default content based on type
-  switch (type) {
-    case 'div':
-    case 'section':
-      element.className += ' min-h-[100px]';
-      element.innerHTML = '<p class="text-gray-400 text-sm">Container</p>';
-      break;
-    case 'p':
-      element.textContent = 'Text content';
-      break;
-    case 'h1':
-    case 'h2':
-    case 'h3':
-      element.textContent = 'Heading';
-      element.className = element.className.replace('p-4', 'p-2');
-      break;
-    case 'button':
-      element.textContent = 'Button';
-      element.className = 'px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800';
-      break;
-    case 'img':
-      (element as HTMLImageElement).src = 'https://via.placeholder.com/300x200';
-      (element as HTMLImageElement).alt = 'Image';
-      break;
-    case 'a':
-      (element as HTMLAnchorElement).href = '#';
-      element.textContent = 'Link';
-      break;
-    case 'input':
-      (element as HTMLInputElement).type = 'text';
-      (element as HTMLInputElement).placeholder = 'Input field';
-      (element as HTMLInputElement).className = 'px-3 py-2 border border-gray-300 rounded-md';
-      break;
+  // Determine if element can contain children
+  const canContainChildren = ['div', 'section', 'article', 'main', 'header', 'footer', 'nav', 'aside'].includes(type);
+  
+  if (canContainChildren) {
+    element.className = 'banana-element banana-container p-4 border-2 border-dashed border-gray-300 rounded-md mb-2 min-h-[80px] bg-gray-50';
+    element.setAttribute('data-banana-container', 'true');
+    
+    // Add placeholder for empty containers
+    const placeholder = document.createElement('div');
+    placeholder.className = 'text-center text-gray-400 text-xs py-4';
+    placeholder.textContent = 'Drop elements here';
+    placeholder.setAttribute('data-placeholder', 'true');
+    element.appendChild(placeholder);
+  } else {
+    // Non-container elements
+    switch (type) {
+      case 'p':
+        element.className = 'banana-element p-2 text-gray-900 mb-2';
+        element.textContent = 'Text content';
+        break;
+      case 'h1':
+      case 'h2':
+      case 'h3':
+      case 'h4':
+      case 'h5':
+      case 'h6':
+        element.className = `banana-element ${type} font-bold text-gray-900 mb-2`;
+        element.textContent = 'Heading';
+        break;
+      case 'button':
+        element.className = 'banana-element px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 mb-2 inline-block';
+        element.textContent = 'Button';
+        break;
+      case 'img':
+        (element as HTMLImageElement).src = 'https://via.placeholder.com/300x200';
+        (element as HTMLImageElement).alt = 'Image';
+        element.className = 'banana-element mb-2 max-w-full';
+        break;
+      case 'a':
+        (element as HTMLAnchorElement).href = '#';
+        element.textContent = 'Link';
+        element.className = 'banana-element text-blue-600 hover:underline mb-2 inline-block';
+        break;
+      case 'input':
+        (element as HTMLInputElement).type = 'text';
+        (element as HTMLInputElement).placeholder = 'Input field';
+        element.className = 'banana-element px-3 py-2 border border-gray-300 rounded-md mb-2 block';
+        break;
+      default:
+        element.className = 'banana-element p-2 border border-gray-200 rounded-md mb-2';
+        element.textContent = type;
+    }
   }
 
-  // Remove placeholder if exists
-  const placeholder = canvas.querySelector('.text-center.text-gray-400');
-  if (placeholder) {
+  // Add to DOM
+  const placeholder = parent.querySelector('[data-placeholder]');
+  if (placeholder && parent.hasAttribute('data-banana-canvas')) {
+    // If dropping on canvas, remove canvas placeholder
+    placeholder.remove();
+  } else if (placeholder && placeholder.parentElement === parent) {
+    // If dropping in container, remove container placeholder
     placeholder.remove();
   }
 
-  canvas.appendChild(element);
+  parent.appendChild(element);
+
+  // Register as drop zone if it's a container
+  if (canContainChildren && dragDrop) {
+    dragDrop.registerDropZone(elementId, element, []);
+  }
+
+  // Add to element tree
+  if (tree) {
+    const parentId = parent.getAttribute('data-banana-id');
+    const node: ElementNode = {
+      id: elementId,
+      type,
+      props: {},
+      children: [],
+      parent: parentId === 'canvas' ? undefined : (parentId || undefined),
+      styles: {},
+    };
+    tree.addNode(node, parentId === 'canvas' ? undefined : (parentId || undefined));
+  }
+
+  return element;
 }

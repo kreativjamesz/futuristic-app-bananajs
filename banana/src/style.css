@@ -41,3 +41,46 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Drop zone feedback */
+.banana-drop-zone-active {
+  border-color: #3b82f6 !important;
+  background-color: #eff6ff !important;
+}
+
+.banana-drop-zone-hover {
+  border-style: solid !important;
+  border-width: 2px !important;
+}
+
+/* Container elements */
+.banana-container {
+  position: relative;
+}
+
+.banana-container:hover {
+  border-color: #9ca3af !important;
+}
+
+.banana-container.banana-drop-zone-active {
+  border-color: #3b82f6 !important;
+  border-style: solid !important;
+  background-color: #eff6ff !important;
+}
+
+/* Element styling */
+.banana-element {
+  position: relative;
+  transition: all 150ms;
+}
+
+.banana-element:hover {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.banana-element-selected {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px;
+  background-color: #eff6ff !important;
+}
