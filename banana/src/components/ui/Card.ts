@@ -13,9 +13,9 @@ export interface CardProps {
 
 const paddingStyles = {
   none: '',
-  sm: 'p-4',
-  md: 'p-6',
-  lg: 'p-8',
+  sm: 'p-3',
+  md: 'p-4',
+  lg: 'p-6',
 };
 
 export function createCard(props: CardProps): HTMLElement {
@@ -28,13 +28,13 @@ export function createCard(props: CardProps): HTMLElement {
   } = props;
 
   const card = document.createElement('div');
-  const baseStyles = 'bg-white rounded-xl border border-gray-200';
-  const hoverStyles = hover ? 'hover:border-gray-300 hover:shadow-lg transition-all duration-200' : '';
+  const baseStyles = 'bg-white rounded-md border border-gray-200';
+  const hoverStyles = hover ? 'hover:border-gray-300 transition-colors duration-150' : '';
   card.className = `${baseStyles} ${hoverStyles} ${className}`.trim();
 
   if (title) {
     const titleEl = document.createElement('h3');
-    titleEl.className = 'text-xl font-semibold text-gray-900 mb-4';
+    titleEl.className = 'text-base font-medium text-gray-900 mb-3';
     titleEl.textContent = title;
     card.appendChild(titleEl);
   }

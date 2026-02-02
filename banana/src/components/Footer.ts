@@ -18,7 +18,7 @@ export function createFooter(): HTMLElement {
           <span class="text-xl font-bold text-gray-900">BananaJS</span>
         </div>
         <p class="text-gray-600 text-sm leading-relaxed">
-          Open-source visual page builder. Build beautiful websites without writing code.
+          not yet open-source visual page builder. Build beautiful websites without writing code.
         </p>
       </div>
       

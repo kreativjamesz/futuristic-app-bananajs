@@ -19,9 +19,9 @@ const variantStyles = {
 };
 
 const sizeStyles = {
-  sm: 'px-2 py-1 text-xs',
-  md: 'px-3 py-1.5 text-sm',
-  lg: 'px-4 py-2 text-base',
+  sm: 'px-2 py-0.5 text-xs',
+  md: 'px-2.5 py-1 text-xs',
+  lg: 'px-3 py-1 text-sm',
 };
 
 export function createBadge(props: BadgeProps): HTMLElement {
@@ -33,7 +33,7 @@ export function createBadge(props: BadgeProps): HTMLElement {
   } = props;
 
   const badge = document.createElement('span');
-  const baseStyles = 'inline-flex items-center font-medium rounded-full border';
+  const baseStyles = 'inline-flex items-center font-medium rounded-md border';
   const variantStyle = variantStyles[variant];
   const sizeStyle = sizeStyles[size];
   

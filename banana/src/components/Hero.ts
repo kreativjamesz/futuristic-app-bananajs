@@ -22,7 +22,7 @@ export function createHero(): HTMLElement {
       </h1>
       
       <p class="text-xl sm:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-        BananaJS is a powerful, open-source visual page builder that lets you create stunning websites with drag-and-drop simplicity. No coding required.
+        BananaJS is a powerful, not yet open-source visual page builder that lets you create stunning websites with drag-and-drop simplicity. No coding required.
       </p>
       
       <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16" id="hero-cta-buttons">

@@ -1,7 +1,7 @@
 {
   "name": "bananajs",
   "version": "0.1.0",
-  "description": "A powerful, open-source visual page builder - Build beautiful websites with drag-and-drop simplicity",
+  "description": "A powerful, not yet open-source visual page builder - Build beautiful websites with drag-and-drop simplicity",
   "type": "module",
   "main": "./dist/bananajs.js",
   "module": "./dist/bananajs.js",

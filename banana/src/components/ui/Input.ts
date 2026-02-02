@@ -52,7 +52,7 @@ export function createInput(props: InputProps): HTMLElement {
   input.required = required;
   input.disabled = disabled;
   
-  const baseStyles = 'w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200';
+  const baseStyles = 'w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors duration-150';
   const normalStyles = 'border-gray-300 focus:border-gray-900 focus:ring-gray-900';
   const errorStyles = 'border-red-500 focus:border-red-500 focus:ring-red-500';
   

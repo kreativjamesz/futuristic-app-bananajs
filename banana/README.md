@@ -1,6 +1,6 @@
 # 🍌 BananaJS
 
-A powerful, open-source visual page builder - Build beautiful websites with drag-and-drop simplicity.
+A powerful, not yet open-source visual page builder - Build beautiful websites with drag-and-drop simplicity.
 
 ## 🚀 Features
 

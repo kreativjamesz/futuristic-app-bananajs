@@ -1,23 +1,12 @@
 @import "tailwindcss";
 
-/* 
- * Ensure Tailwind detects classes in TypeScript files
- * These classes are used in Button, Input, and other UI components
- */
-/* px-4 py-2 px-6 py-3 px-8 py-4 bg-gray-900 text-white hover:bg-gray-800 */
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #111827;
-  line-height: 1.6;
+  line-height: 1.5;
+  font-size: 14px;
 }
 
 /* Grid pattern background */
@@ -28,9 +17,9 @@ body {
   background-size: 40px 40px;
 }
 
-/* Smooth transitions */
+/* Minimal transitions - New York aesthetic */
 * {
-  transition-property: color, background-color, border-color, transform, opacity;
+  transition-property: color, background-color, border-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
