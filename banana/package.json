@@ -1,0 +1,62 @@
+{
+  "name": "bananajs",
+  "version": "0.1.0",
+  "description": "A powerful, open-source visual page builder - Build beautiful websites with drag-and-drop simplicity",
+  "type": "module",
+  "main": "./dist/bananajs.umd.js",
+  "module": "./dist/bananajs.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/bananajs.js",
+      "require": "./dist/bananajs.umd.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:lib": "tsc && vite build --mode library",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts",
+    "format": "prettier --write \"src/**/*.{ts,css}\"",
+    "test": "vitest"
+  },
+  "keywords": [
+    "page-builder",
+    "visual-editor",
+    "drag-drop",
+    "webflow",
+    "grapesjs",
+    "wysiwyg",
+    "website-builder"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/node": "^25.2.0",
+    "@vitest/ui": "^4.0.18",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.1.18",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4",
+    "vitest": "^4.0.18",
+    "zustand": "^5.0.11"
+  }
+}
