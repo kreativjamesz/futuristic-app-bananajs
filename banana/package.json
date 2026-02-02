@@ -3,13 +3,12 @@
   "version": "0.1.0",
   "description": "A powerful, open-source visual page builder - Build beautiful websites with drag-and-drop simplicity",
   "type": "module",
-  "main": "./dist/bananajs.umd.js",
+  "main": "./dist/bananajs.js",
   "module": "./dist/bananajs.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/bananajs.js",
-      "require": "./dist/bananajs.umd.js",
       "types": "./dist/index.d.ts"
     }
   },

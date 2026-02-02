@@ -1,26 +1,58 @@
 import './style.css';
-// import { BananaJS } from './index';
+import {
+  createNavbar,
+  createHero,
+  createFeatures,
+  createWhy,
+  createCTA,
+  createFooter,
+} from './components';
 
-// Initialize BananaJS
+// Initialize landing page
 const app = document.querySelector<HTMLDivElement>('#app')!;
+app.innerHTML = '';
 
-app.innerHTML = `
-  <div class="min-h-screen bg-gray-100 p-8">
-    <div class="max-w-7xl mx-auto">
-      <h1 class="text-4xl font-bold text-gray-900 mb-2">🍌 BananaJS</h1>
-      <p class="text-gray-600 mb-8">Visual Page Builder - Coming Soon</p>
-      
-      <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-2xl font-semibold mb-4">Canvas Area</h2>
-        <div id="banana-canvas" class="min-h-[400px] border-2 border-dashed border-gray-300 rounded-lg p-4">
-          <p class="text-gray-500 text-center">Drop elements here</p>
-        </div>
-      </div>
-    </div>
-  </div>
+// Add smooth scrolling
+document.documentElement.style.scrollBehavior = 'smooth';
+
+// Build page structure
+const navbar = createNavbar();
+const hero = createHero();
+const features = createFeatures();
+features.id = 'features';
+const why = createWhy();
+why.id = 'why';
+const cta = createCTA();
+const footer = createFooter();
+
+// Append all sections
+app.appendChild(navbar);
+app.appendChild(hero);
+app.appendChild(features);
+app.appendChild(why);
+app.appendChild(cta);
+app.appendChild(footer);
+
+// Add scroll offset for fixed navbar
+const style = document.createElement('style');
+style.textContent = `
+  html {
+    scroll-padding-top: 4rem;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  section {
+    animation: fadeInUp 0.6s ease-out;
+  }
 `;
-
-// Initialize BananaJS instance
-// const banana = new BananaJS({
-//   container: '#banana-canvas',
-// });
+document.head.appendChild(style);

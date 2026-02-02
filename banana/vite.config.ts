@@ -8,8 +8,8 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'BananaJS',
-      fileName: (format) => `bananajs.${format}.js`,
-      formats: ['es', 'umd'],
+      fileName: () => 'bananajs.js',
+      formats: ['es'],
     },
     rollupOptions: {
       external: [],
